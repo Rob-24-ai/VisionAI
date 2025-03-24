@@ -1,7 +1,6 @@
 'use client';
 
-import { CameraIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Camera, Video } from 'lucide-react';
 
 interface WelcomeScreenProps {
   onStartSession: () => void;
@@ -9,48 +8,47 @@ interface WelcomeScreenProps {
 
 export default function WelcomeScreen({ onStartSession }: WelcomeScreenProps) {
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-b from-dark-900 to-black flex flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full mx-auto text-center">
-        <div className="mb-8">
-          <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CameraIcon className="w-10 h-10 text-primary" />
+    <div className="flex flex-col items-center justify-center h-full w-full bg-gradient-to-b from-gray-900 to-black text-white p-6">
+      <div className="max-w-md w-full flex flex-col items-center">
+        {/* Logo/Icon */}
+        <div className="mb-8 bg-primary/20 p-6 rounded-full">
+          <Camera className="h-16 w-16 text-primary" />
+        </div>
+        
+        {/* Welcome Text */}
+        <h1 className="text-3xl font-bold mb-4 text-center">AI Art Critic</h1>
+        <p className="text-center text-gray-300 mb-8">
+          Point your camera at any artwork and get real-time expert analysis and feedback.
+        </p>
+        
+        {/* Features */}
+        <div className="w-full mb-8 space-y-3">
+          <div className="flex items-center space-x-3 bg-white/5 p-3 rounded-lg">
+            <div className="bg-primary/20 p-2 rounded-full">
+              <Camera className="h-5 w-5 text-primary" />
+            </div>
+            <p className="text-sm">Real-time camera analysis</p>
           </div>
           
-          <h1 className="text-3xl font-bold text-white mb-3">
-            Vision Bot
-          </h1>
-          
-          <p className="text-gray-300 mb-6">
-            An AI assistant that can see and understand your visual context. Ask questions about what you're looking at.
-          </p>
-          
-          <div className="grid grid-cols-1 gap-3 text-left text-sm mb-8">
-            <div className="bg-dark-800/50 p-3 rounded-lg border border-white/10">
-              <h3 className="font-medium text-white mb-1">Show objects</h3>
-              <p className="text-gray-400">Point your camera at objects and ask about them</p>
+          <div className="flex items-center space-x-3 bg-white/5 p-3 rounded-lg">
+            <div className="bg-primary/20 p-2 rounded-full">
+              <Video className="h-5 w-5 text-primary" />
             </div>
-            
-            <div className="bg-dark-800/50 p-3 rounded-lg border border-white/10">
-              <h3 className="font-medium text-white mb-1">Scan documents</h3>
-              <p className="text-gray-400">Get information from documents, menus, and signs</p>
-            </div>
-            
-            <div className="bg-dark-800/50 p-3 rounded-lg border border-white/10">
-              <h3 className="font-medium text-white mb-1">Natural conversation</h3>
-              <p className="text-gray-400">Have a back-and-forth dialog about what you see</p>
-            </div>
+            <p className="text-sm">Expert art critique and feedback</p>
           </div>
         </div>
         
-        <Button 
-          onClick={onStartSession} 
-          className="w-full py-6 bg-primary hover:bg-primary/90 text-lg"
+        {/* Start Button */}
+        <button
+          onClick={onStartSession}
+          className="w-full bg-primary hover:bg-primary/90 text-white rounded-lg py-3 font-semibold transition-colors duration-200 active:scale-95 transform"
         >
-          Get Started
-        </Button>
+          Start Session
+        </button>
         
-        <p className="mt-4 text-xs text-gray-500">
-          By continuing, you agree to our Terms of Service and Privacy Policy. Camera access is required.
+        {/* Privacy note */}
+        <p className="text-xs text-gray-400 mt-6 text-center">
+          Camera access is required. Your session data is processed securely.
         </p>
       </div>
     </div>

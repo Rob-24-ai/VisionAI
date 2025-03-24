@@ -3,19 +3,21 @@
 import { useEffect, useState, useCallback } from 'react';
 import { ConnectionStatus, ExtendedRTVIClient, PipecatClientConfig } from '@/types/pipecat';
 
-// This is a placeholder for the actual Pipecat client that will be imported
-// from the Pipecat SDK once we install it
+// Import this once the Pipecat SDK is installed
+// import { RTVIClientAudio } from '@pipecat-ai/client-js';
+// For now we'll use a placeholder
 let RTVIClientAudio: any = null;
 
-// Default configuration for Pipecat
-const defaultConfig: PipecatClientConfig = {
+// Configuration for Pipecat Cloud
+// This will be populated with actual API key when provided
+const pipecatConfig: PipecatClientConfig = {
+  apiKey: process.env.NEXT_PUBLIC_PIPECAT_API_KEY, // This will be set from environment variable
   baseUrl: 'https://api.pipecat.ai',
   endpoint: {
     connect: '/v1/connect',
   },
 };
 
-// This is a placeholder hook that will be replaced with actual Pipecat SDK integration
 export function usePipecatClient() {
   const [client, setClient] = useState<ExtendedRTVIClient | null>(null);
   const [status, setStatus] = useState<ConnectionStatus>('disconnected');
@@ -23,27 +25,38 @@ export function usePipecatClient() {
   const [transcript, setTranscript] = useState<string>('');
   const [error, setError] = useState<Error | null>(null);
   
-  // Initialize client - this is a placeholder for the actual initialization
+  // Initialize client
   useEffect(() => {
-    // This is where we would initialize the actual Pipecat client
-    // For now, we're just creating a mock implementation
-    const mockClient: ExtendedRTVIClient = {
+    // In the actual implementation, we would use:
+    // const pipecatClient = new RTVIClientAudio(pipecatConfig);
+    
+    // For MVP, we'll use a simulated client
+    const simulatedClient: ExtendedRTVIClient = {
       hasDevicePermissions: () => false,
       requestDevicePermissions: async () => {
-        // Mock implementation
+        // In real implementation, this would request actual permissions
         console.log('Requesting device permissions');
-        return Promise.resolve();
+        return new Promise<void>(resolve => {
+          // Simulate permission request
+          setTimeout(resolve, 1000);
+        });
       },
       connect: () => {
-        console.log('Connecting to Pipecat');
+        console.log('Connecting to Pipecat Cloud');
         setStatus('connecting');
-        // Simulate connection
+        // Simulate connection process
         setTimeout(() => {
-          setStatus('connected');
+          if (Math.random() > 0.2) { // 80% success rate for demo
+            setStatus('connected');
+            console.log('Connected to Pipecat Cloud');
+          } else {
+            setStatus('error');
+            setError(new Error('Failed to connect to Pipecat Cloud'));
+          }
         }, 2000);
       },
       disconnect: () => {
-        console.log('Disconnecting from Pipecat');
+        console.log('Disconnecting from Pipecat Cloud');
         setStatus('disconnected');
         setTranscript('');
       },
@@ -54,24 +67,60 @@ export function usePipecatClient() {
         console.log('Unmuting microphone');
       },
       on: (event, callback) => {
-        // Mock event handling
-        console.log(`Registered handler for ${event}`);
+        if (event === 'transcript') {
+          // Simulate transcript events when connected
+          const interval = setInterval(() => {
+            if (status === 'connected' && !isProcessing) {
+              const mockTranscripts = [
+                "I can see a painting with vibrant colors.",
+                "The composition draws the eye to the center.",
+                "The brushwork shows excellent technique.",
+                "I notice interesting use of light and shadow.",
+                "The artwork has a strong emotional quality.",
+                "The perspective creates depth in the scene."
+              ];
+              
+              const randomText = mockTranscripts[Math.floor(Math.random() * mockTranscripts.length)];
+              callback({ 
+                transcript: { text: randomText, final: true },
+                role: 'assistant'
+              });
+              
+              setTranscript(randomText);
+            }
+          }, 8000);
+          
+          return () => clearInterval(interval);
+        }
+        
+        if (event === 'processingStateChange') {
+          // Simulate processing state changes
+          const interval = setInterval(() => {
+            if (status === 'connected') {
+              const newProcessingState = !isProcessing;
+              setIsProcessing(newProcessingState);
+              callback({ processing: newProcessingState });
+            }
+          }, 4000);
+          
+          return () => clearInterval(interval);
+        }
       },
       off: (event, callback) => {
-        // Mock event handling
+        // Cleanup event handlers
         console.log(`Removed handler for ${event}`);
       }
     };
     
-    setClient(mockClient);
+    setClient(simulatedClient);
     
     return () => {
       // Cleanup
       if (status === 'connected') {
-        mockClient.disconnect();
+        simulatedClient.disconnect();
       }
     };
-  }, []);
+  }, [status, isProcessing]);
   
   // Connect to Pipecat
   const connect = useCallback(() => {
@@ -110,5 +159,5 @@ export function usePipecatClient() {
   };
 }
 
-// This would be exported from the actual Pipecat SDK
+// To be imported from Pipecat SDK
 export const PipecatAudio = RTVIClientAudio;

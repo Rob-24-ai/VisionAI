@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 
 interface UseAudioLevelsOptions {
   smoothingFactor?: number; // Between 0 and 1, higher values mean smoother transitions
@@ -10,127 +10,120 @@ interface UseAudioLevelsOptions {
 
 export function useAudioLevels(options: UseAudioLevelsOptions = {}) {
   const {
-    smoothingFactor = 0.3,
-    minLevel = 0.1,
-    enabled = false
+    smoothingFactor = 0.5,
+    minLevel = 0.05,
+    enabled = true,
   } = options;
-  
-  const [level, setLevel] = useState<number>(0);
+
+  const [audioLevel, setAudioLevel] = useState<number>(0);
+  const [isActive, setIsActive] = useState<boolean>(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const animationFrameRef = useRef<number | null>(null);
-  const dataArrayRef = useRef<Uint8Array | null>(null);
+  const previousLevelRef = useRef<number>(0);
   
-  // Initialize or clean up audio context based on enabled state
-  useEffect(() => {
-    if (enabled) {
-      // Create audio context if it doesn't exist
+  // Start audio level monitoring
+  const startMonitoring = useCallback(async () => {
+    if (!enabled) return;
+    
+    try {
       if (!audioContextRef.current) {
-        try {
-          const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-          audioContextRef.current = new AudioContext();
-        } catch (error) {
-          console.error('AudioContext not supported:', error);
-        }
+        // Create audio context
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
       
       // Request microphone access
-      navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-        .then(stream => {
-          mediaStreamRef.current = stream;
-          
-          if (audioContextRef.current) {
-            // Create analyzer
-            analyserRef.current = audioContextRef.current.createAnalyser();
-            analyserRef.current.fftSize = 256;
-            analyserRef.current.smoothingTimeConstant = 0.8;
-            
-            // Connect microphone to analyzer
-            sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
-            sourceRef.current.connect(analyserRef.current);
-            
-            // Create data array for analyzing
-            const bufferLength = analyserRef.current.frequencyBinCount;
-            dataArrayRef.current = new Uint8Array(bufferLength);
-            
-            // Start analyzing
-            requestAnimationFrame(analyzeAudio);
-          }
-        })
-        .catch(error => {
-          console.error('Error accessing microphone:', error);
-        });
-    } else {
-      // Clean up resources when disabled
-      cleanupAudio();
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+      
+      // Create analyzer
+      const analyser = audioContextRef.current.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = smoothingFactor;
+      
+      // Connect stream to analyzer
+      const source = audioContextRef.current.createMediaStreamSource(stream);
+      source.connect(analyser);
+      
+      analyserRef.current = analyser;
+      setIsActive(true);
+      
+      // Start capturing levels
+      captureAudioLevels();
+    } catch (error) {
+      console.error('Failed to start audio monitoring:', error);
+      setIsActive(false);
     }
-    
-    return () => {
-      cleanupAudio();
-    };
-  }, [enabled]);
+  }, [enabled, smoothingFactor]);
   
-  // Function to analyze audio and update level
-  const analyzeAudio = useCallback(() => {
-    if (!analyserRef.current || !dataArrayRef.current || !enabled) {
-      return;
-    }
-    
-    // Get frequency data
-    analyserRef.current.getByteFrequencyData(dataArrayRef.current);
-    
-    // Calculate average level
-    let sum = 0;
-    const length = dataArrayRef.current.length;
-    
-    for (let i = 0; i < length; i++) {
-      sum += dataArrayRef.current[i];
-    }
-    
-    // Convert to a value between 0 and 1
-    const rawLevel = sum / (length * 255);
-    const normalizedLevel = Math.max(minLevel, rawLevel);
-    
-    // Apply smoothing
-    setLevel(prev => {
-      return prev + (normalizedLevel - prev) * smoothingFactor;
-    });
-    
-    // Continue analyzing
-    animationFrameRef.current = requestAnimationFrame(analyzeAudio);
-  }, [enabled, minLevel, smoothingFactor]);
-  
-  // Clean up audio resources
-  const cleanupAudio = useCallback(() => {
-    if (animationFrameRef.current) {
+  // Stop audio level monitoring
+  const stopMonitoring = useCallback(() => {
+    // Stop animation frame
+    if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
     
-    // Disconnect source
-    if (sourceRef.current) {
-      sourceRef.current.disconnect();
-      sourceRef.current = null;
-    }
-    
-    // Stop all tracks in the media stream
+    // Stop microphone stream
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach(track => track.stop());
       mediaStreamRef.current = null;
     }
     
-    // Close audio context
-    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-      audioContextRef.current.close().catch(console.error);
-    }
-    
-    setLevel(0);
+    // Reset state
+    setIsActive(false);
+    setAudioLevel(0);
+    previousLevelRef.current = 0;
   }, []);
   
+  // Capture and process audio levels
+  const captureAudioLevels = useCallback(() => {
+    if (!analyserRef.current || !isActive) return;
+    
+    const analyser = analyserRef.current;
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    
+    const updateLevels = () => {
+      analyser.getByteFrequencyData(dataArray);
+      
+      // Calculate average level
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        sum += dataArray[i];
+      }
+      
+      // Normalize to 0-1
+      const avg = sum / dataArray.length / 255;
+      
+      // Apply smoothing with the previous level
+      const smoothedLevel = previousLevelRef.current * smoothingFactor + avg * (1 - smoothingFactor);
+      const finalLevel = Math.max(smoothedLevel, minLevel);
+      
+      previousLevelRef.current = smoothedLevel;
+      setAudioLevel(finalLevel);
+      
+      // Continue capturing
+      animationFrameRef.current = requestAnimationFrame(updateLevels);
+    };
+    
+    animationFrameRef.current = requestAnimationFrame(updateLevels);
+  }, [isActive, smoothingFactor, minLevel]);
+  
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      stopMonitoring();
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+    };
+  }, [stopMonitoring]);
+  
   return {
-    level,
-    isCapturing: enabled && !!analyserRef.current
+    audioLevel,
+    isActive,
+    startMonitoring,
+    stopMonitoring
   };
 }

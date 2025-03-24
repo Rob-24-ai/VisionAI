@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Mic, MicOff } from 'lucide-react';
 import { useAudioLevels } from '@/hooks/useAudioLevels';
 
@@ -9,52 +10,71 @@ interface ControlsBarProps {
 }
 
 export default function ControlsBar({ isMicActive, onMicToggle }: ControlsBarProps) {
-  // Use our audio levels hook to get real-time audio levels when the mic is active
-  const { level: voiceLevel } = useAudioLevels({
-    enabled: isMicActive,
-    smoothingFactor: 0.3,
-    minLevel: 0.1
+  // Audio level for microphone visualization
+  const { audioLevel, isActive, startMonitoring, stopMonitoring } = useAudioLevels({
+    smoothingFactor: 0.7,
+    minLevel: 0.05
   });
   
+  // Start/stop audio monitoring based on mic state
+  useEffect(() => {
+    if (isMicActive) {
+      startMonitoring();
+    } else {
+      stopMonitoring();
+    }
+    
+    return () => stopMonitoring();
+  }, [isMicActive, startMonitoring, stopMonitoring]);
+  
+  // Calculate size of inner circle based on audio level
+  const getInnerCircleSize = () => {
+    // Base size when not speaking (40% of outer button)
+    const minSize = 40;
+    // Max growth when speaking loud (85% of outer button)
+    const maxSize = 85;
+    
+    // Linear interpolation between min and max based on audio level
+    const size = minSize + (maxSize - minSize) * audioLevel;
+    return `${size}%`;
+  };
+  
   return (
-    <div className="fixed bottom-6 left-0 right-0 flex justify-center items-center z-30">
-      <button
-        onClick={onMicToggle}
-        className="relative w-16 h-16 rounded-full bg-primary flex items-center justify-center shadow-lg"
-        aria-label={isMicActive ? "Mute microphone" : "Unmute microphone"}
-      >
-        {/* Voice level indicator - inner circle that changes size based on voice level */}
-        {isMicActive && (
+    <div className="fixed bottom-0 left-0 right-0 flex justify-center items-center z-10 pb-6 pointer-events-none">
+      <div className="flex gap-4 items-center">
+        {/* Microphone button with audio level visualization */}
+        <button
+          onClick={onMicToggle}
+          className="relative w-16 h-16 flex items-center justify-center bg-primary rounded-full shadow-lg pointer-events-auto hover:bg-primary/90 active:scale-95 transition-all duration-200"
+          aria-label={isMicActive ? "Mute microphone" : "Unmute microphone"}
+        >
+          {/* Outer ring (button background) */}
+          <div className="absolute inset-0 rounded-full bg-primary"></div>
+          
+          {/* Inner circle (audio visualization) */}
           <div 
-            className="absolute rounded-full bg-white transition-all duration-75"
-            style={{
-              width: `${Math.max(40, 40 + (voiceLevel * 20))}px`,
-              height: `${Math.max(40, 40 + (voiceLevel * 20))}px`,
-              opacity: 0.2 + (voiceLevel * 0.3)
+            className={`absolute rounded-full bg-white transition-all duration-100 ${
+              isMicActive ? 'opacity-90' : 'opacity-0'
+            }`}
+            style={{ 
+              width: getInnerCircleSize(), 
+              height: getInnerCircleSize(),
+              transform: 'translate(-50%, -50%)',
+              left: '50%',
+              top: '50%'
             }}
           ></div>
-        )}
-        
-        {/* Secondary pulse animation for visual feedback */}
-        {isMicActive && (
-          <div 
-            className="absolute rounded-full bg-white animate-ping"
-            style={{
-              width: '40px',
-              height: '40px',
-              opacity: 0.1,
-              animationDuration: '2s'
-            }}
-          ></div>
-        )}
-        
-        {/* Mic icon */}
-        {isMicActive ? (
-          <Mic className="w-7 h-7 text-white" />
-        ) : (
-          <MicOff className="w-7 h-7 text-white" />
-        )}
-      </button>
+          
+          {/* Mic icon */}
+          <div className="relative z-10">
+            {isMicActive ? (
+              <Mic className="h-6 w-6 text-white" />
+            ) : (
+              <MicOff className="h-6 w-6 text-white" />
+            )}
+          </div>
+        </button>
+      </div>
     </div>
   );
 }
