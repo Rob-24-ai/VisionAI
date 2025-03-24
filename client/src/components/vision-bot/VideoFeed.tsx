@@ -40,8 +40,8 @@ export default function VideoFeed({ children, isProcessing = false, modelName = 
   }, [initCamera]);
 
   return (
-    <div className="relative h-full w-full flex items-center justify-center">
-      <div className="relative w-full h-full max-h-[85vh] overflow-hidden rounded-2xl bg-dark-700">
+    <div className="relative w-full flex items-center justify-center">
+      <div className="relative aspect-square w-full max-w-md overflow-hidden rounded-2xl bg-dark-700">
         <video
           ref={videoRef}
           autoPlay
@@ -49,6 +49,16 @@ export default function VideoFeed({ children, isProcessing = false, modelName = 
           muted
           className="w-full h-full object-cover transform"
         />
+        
+        {/* Camera Status Message (for fallback) */}
+        {cameraInitFailed && (
+          <div className="absolute inset-0 flex items-center justify-center bg-dark-900/50 backdrop-blur-sm">
+            <div className="text-center px-4">
+              <p className="text-white text-lg font-semibold mb-2">Camera Unavailable</p>
+              <p className="text-gray-300 text-sm">Using fallback mode</p>
+            </div>
+          </div>
+        )}
         
         {/* Video Overlay (Model/Processing indicator) */}
         <div className="absolute top-4 left-4 right-4 flex justify-between items-start">

@@ -23,8 +23,19 @@ export function useCustomCamera() {
         throw new Error("Camera API not supported in this environment");
       }
       
-      // Default constraints for mobile-optimized camera
+      // Default constraints for mobile-optimized camera with rear-facing priority
       const constraints = {
+        audio: false,
+        video: {
+          // Use "environment" for rear camera, "user" for front camera
+          facingMode: { exact: options.facingMode || "environment" },
+          width: { ideal: options.width || 1280 },
+          height: { ideal: options.height || 720 },
+        }
+      };
+      
+      // Fallback if exact constraint fails
+      const fallbackConstraints = {
         audio: false,
         video: {
           facingMode: options.facingMode || "environment",
@@ -33,14 +44,20 @@ export function useCustomCamera() {
         }
       };
       
-      // Attempt to access camera
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      // Attempt to access camera with exact constraints first
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (exactError) {
+        console.log("Exact facingMode constraint failed, trying fallback:", exactError);
+        // Try with fallback constraints
+        stream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
+      }
       
       // Try to optimize the video track if possible
       stream.getVideoTracks().forEach(track => {
         if (track.getCapabilities && typeof track.getCapabilities === 'function') {
           // Apply any optimizations if needed
-          // Note: Latency optimization removed due to compatibility issues
           track.applyConstraints({ 
             advanced: [{ width: { ideal: 1280 }, height: { ideal: 720 } }] 
           }).catch(e => console.log("Could not apply advanced constraints:", e));
