@@ -1,7 +1,5 @@
-'use client';
-
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { Persona, defaultPersona } from '@/lib/personas';
+import { Persona, defaultPersona } from '../lib/personas';
 
 interface PersonaContextType {
   currentPersona: Persona;

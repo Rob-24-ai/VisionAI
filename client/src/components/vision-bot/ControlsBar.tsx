@@ -1,29 +1,48 @@
+import { Mic, MicOff } from 'lucide-react';
+
 interface ControlsBarProps {
   isMicActive: boolean;
   onMicToggle: () => void;
+  audioLevel?: number; // 0-1 value for audio visualization
 }
 
-export default function ControlsBar({ isMicActive, onMicToggle }: ControlsBarProps) {
+export default function ControlsBar({ isMicActive, onMicToggle, audioLevel = 0 }: ControlsBarProps) {
+  // Calculate inner circle scale based on audio level
+  const getInnerScale = () => {
+    // Base minimum size (20%) + audio level influence (up to 80%)
+    return 0.2 + (audioLevel * 0.8);
+  };
+  
   return (
-    <div className="fixed bottom-0 left-0 right-0 flex justify-center items-center pb-8 pt-2">
-      <button 
+    <div className="absolute bottom-0 left-0 right-0 flex justify-center mb-8">
+      <button
         onClick={onMicToggle}
-        className={`mic-button w-16 h-16 ${isMicActive ? 'bg-violet-600' : 'bg-violet-600'} hover:bg-violet-700 rounded-full flex items-center justify-center shadow-lg focus:outline-none transition-all active:scale-95`}
-        aria-label={isMicActive ? "Mute microphone" : "Unmute microphone"}
+        className={`relative rounded-full p-4 flex items-center justify-center transition-colors duration-200 ${
+          isMicActive 
+            ? 'bg-indigo-600 hover:bg-indigo-700' 
+            : 'bg-gray-700 hover:bg-gray-600'
+        }`}
+        aria-label={isMicActive ? 'Mute microphone' : 'Unmute microphone'}
       >
-        {!isMicActive && (
-          <svg className="w-7 h-7 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-          </svg>
-        )}
-        
-        {isMicActive && (
-          <div className="volume-bars">
-            <div className="volume-bar"></div>
-            <div className="volume-bar"></div>
-            <div className="volume-bar"></div>
-          </div>
-        )}
+        {/* Outer fixed circle */}
+        <div className="w-14 h-14 rounded-full flex items-center justify-center">
+          {isMicActive ? (
+            <Mic className="w-7 h-7 text-white" />
+          ) : (
+            <MicOff className="w-7 h-7 text-white" />
+          )}
+          
+          {/* Inner animated circle for audio visualization */}
+          {isMicActive && (
+            <div 
+              className="absolute inset-0 rounded-full bg-indigo-400 opacity-50 transition-transform duration-75"
+              style={{ 
+                transform: `scale(${getInnerScale()})`,
+                transformOrigin: 'center'
+              }}
+            />
+          )}
+        </div>
       </button>
     </div>
   );

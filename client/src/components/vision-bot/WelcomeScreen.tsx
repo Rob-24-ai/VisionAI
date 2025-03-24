@@ -1,31 +1,84 @@
+import { Camera, Mic } from 'lucide-react';
+import { usePersona } from '../../contexts/PersonaContext';
+
 interface WelcomeScreenProps {
   onStartSession: () => void;
 }
 
 export default function WelcomeScreen({ onStartSession }: WelcomeScreenProps) {
+  const { currentPersona } = usePersona();
+  
   return (
-    <div className="fixed inset-0 bg-dark-900 flex flex-col items-center justify-center z-50 p-6">
-      <div className="max-w-xs w-full mx-auto text-center">
-        <div className="mb-8">
-          <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <svg className="w-12 h-12" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold mb-2">Vision Bot</h1>
-          <p className="text-gray-400 text-sm">An AI assistant that can see, hear, and talk with you.</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white px-4">
+      <div className="w-full max-w-md mx-auto text-center space-y-8">
+        {/* Header */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold">Art Critic AI</h1>
+          <p className="text-lg text-gray-400">
+            Get expert feedback on your artwork
+          </p>
         </div>
         
-        <button 
+        {/* Current Expert */}
+        <div className="bg-gray-900 rounded-lg p-6 text-left">
+          <div className="flex items-center gap-3 mb-4">
+            <div 
+              className="w-10 h-10 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: currentPersona.avatarColor }}
+            >
+              <span className="text-white font-bold text-lg">
+                {currentPersona.name.charAt(0)}
+              </span>
+            </div>
+            <div>
+              <h2 className="font-medium text-lg">{currentPersona.name}</h2>
+              <p className="text-sm text-gray-400">{currentPersona.title}</p>
+            </div>
+          </div>
+          
+          <p className="text-sm leading-relaxed text-gray-300">
+            {currentPersona.description}
+          </p>
+        </div>
+        
+        {/* How it works */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-medium">How it works</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-gray-900/50 p-4 rounded-lg flex items-start gap-3">
+              <div className="bg-indigo-600 rounded-full p-2 mt-1">
+                <Camera className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-medium">Show your artwork</h3>
+                <p className="text-sm text-gray-400">Position your camera to frame your artwork clearly</p>
+              </div>
+            </div>
+            
+            <div className="bg-gray-900/50 p-4 rounded-lg flex items-start gap-3">
+              <div className="bg-indigo-600 rounded-full p-2 mt-1">
+                <Mic className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-medium">Ask questions</h3>
+                <p className="text-sm text-gray-400">Speak clearly to get detailed insights about your art</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Start button */}
+        <button
           onClick={onStartSession}
-          className="w-full bg-primary py-3 rounded-lg text-white font-medium mb-4"
+          className="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-medium transition-colors duration-200"
         >
-          Start Conversation
+          Start Session
         </button>
         
-        <div className="text-xs text-gray-500 mt-8">
-          <p>Powered by Pipecat Cloud & Anthropic Claude</p>
-        </div>
+        <p className="text-xs text-gray-500 mt-4">
+          Camera and microphone access required. All media stays on your device.
+        </p>
       </div>
     </div>
   );

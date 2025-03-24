@@ -1,8 +1,6 @@
-'use client';
-
 import { useState } from 'react';
-import { usePersona } from '@/contexts/PersonaContext';
-import { artCriticPersonas, Persona, ArtExpertiseArea } from '@/lib/personas';
+import { usePersona } from '../../contexts/PersonaContext';
+import { artCriticPersonas, Persona, ArtExpertiseArea } from '../../lib/personas';
 import { ChevronDown, User } from 'lucide-react';
 
 interface PersonaSelectorProps {

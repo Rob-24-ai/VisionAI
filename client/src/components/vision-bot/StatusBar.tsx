@@ -1,4 +1,5 @@
-import { ConnectionStatus } from "@/types/pipecat";
+import { WifiIcon, Clock, XCircle } from 'lucide-react';
+import { ConnectionStatus } from '../../types/pipecat';
 
 interface StatusBarProps {
   connectionStatus: ConnectionStatus;
@@ -7,52 +8,51 @@ interface StatusBarProps {
 }
 
 export default function StatusBar({ connectionStatus, sessionTime, onEndSession }: StatusBarProps) {
-  const getStatusColor = () => {
-    switch (connectionStatus) {
-      case "connected":
-        return "bg-green-500";
-      case "connecting":
-        return "bg-yellow-500";
-      case "error":
-        return "bg-red-500";
-      default:
-        return "bg-gray-500";
+  // Helper function to get status text
+  const getStatusText = (status: ConnectionStatus) => {
+    switch (status) {
+      case 'connected': return 'Connected';
+      case 'connecting': return 'Connecting...';
+      case 'disconnected': return 'Disconnected';
+      case 'error': return 'Connection Error';
+      default: return 'Unknown';
     }
   };
 
-  const getStatusText = () => {
-    switch (connectionStatus) {
-      case "connected":
-        return "Connected";
-      case "connecting":
-        return "Connecting...";
-      case "error":
-        return "Connection Error";
-      default:
-        return "Disconnected";
+  // Helper function to get status color
+  const getStatusColor = (status: ConnectionStatus) => {
+    switch (status) {
+      case 'connected': return 'text-green-500';
+      case 'connecting': return 'text-yellow-500';
+      case 'disconnected': return 'text-gray-400';
+      case 'error': return 'text-red-500';
+      default: return 'text-gray-400';
     }
   };
-
+  
   return (
-    <div className="w-full bg-dark-800/90 backdrop-blur-sm flex justify-between items-center px-4 py-2 h-12 shadow-md z-10">
-      <div className="text-xs font-medium flex items-center gap-2">
-        <span className="flex items-center gap-1.5">
-          <span className={`h-2 w-2 rounded-full ${getStatusColor()} ${connectionStatus === "connecting" ? "animate-pulse" : ""}`}></span>
-          <span>{getStatusText()}</span>
-        </span>
+    <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 bg-black/50 backdrop-blur-sm text-white z-10">
+      {/* Connection status */}
+      <div className="flex items-center gap-2">
+        <WifiIcon className={`w-4 h-4 ${getStatusColor(connectionStatus)}`} />
+        <span className="text-xs font-medium">{getStatusText(connectionStatus)}</span>
       </div>
       
-      <div className="flex items-center gap-3">
-        <span className="text-xs font-semibold bg-dark-700/80 px-2 py-0.5 rounded-md">{sessionTime}</span>
-        {connectionStatus === "connected" && (
-          <button 
-            onClick={onEndSession}
-            className="text-red-400 hover:text-red-300 text-xs font-medium bg-red-950/40 px-2 py-0.5 rounded-md transition-colors"
-          >
-            End Session
-          </button>
-        )}
+      {/* Session timer */}
+      <div className="flex items-center gap-2">
+        <Clock className="w-4 h-4 text-gray-300" />
+        <span className="text-xs font-medium">{sessionTime}</span>
       </div>
+      
+      {/* End session button */}
+      <button
+        onClick={onEndSession}
+        className="flex items-center gap-1 text-xs font-medium text-gray-300 hover:text-white transition-colors"
+        aria-label="End session"
+      >
+        <XCircle className="w-4 h-4" />
+        <span>End</span>
+      </button>
     </div>
   );
 }
