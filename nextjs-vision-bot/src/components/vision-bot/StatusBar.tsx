@@ -1,8 +1,8 @@
 'use client';
 
-import { XIcon, ClockIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { XIcon } from 'lucide-react';
 import { ConnectionStatus } from '@/types/pipecat';
+import PersonaSelector from './PersonaSelector';
 
 interface StatusBarProps {
   connectionStatus: ConnectionStatus;
@@ -11,6 +11,7 @@ interface StatusBarProps {
 }
 
 export default function StatusBar({ connectionStatus, sessionTime, onEndSession }: StatusBarProps) {
+  // Get status text and color based on connection status
   const getStatusText = (status: ConnectionStatus) => {
     switch (status) {
       case 'connected':
@@ -22,7 +23,7 @@ export default function StatusBar({ connectionStatus, sessionTime, onEndSession 
       case 'error':
         return 'Connection Error';
       default:
-        return '';
+        return 'Unknown Status';
     }
   };
   
@@ -31,7 +32,7 @@ export default function StatusBar({ connectionStatus, sessionTime, onEndSession 
       case 'connected':
         return 'bg-green-500';
       case 'connecting':
-        return 'bg-yellow-500';
+        return 'bg-yellow-500 animate-pulse';
       case 'disconnected':
         return 'bg-gray-500';
       case 'error':
@@ -42,28 +43,29 @@ export default function StatusBar({ connectionStatus, sessionTime, onEndSession 
   };
   
   return (
-    <div className="fixed top-0 left-0 right-0 z-20 p-2 flex justify-between items-center">
-      <div className="flex items-center space-x-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full">
-        <div className={cn("w-2 h-2 rounded-full", getStatusColor(connectionStatus))}></div>
-        <span className="text-xs font-medium text-white">
-          {getStatusText(connectionStatus)}
-        </span>
+    <div className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-2 bg-black/40 backdrop-blur-md border-b border-white/10">
+      {/* Connection status indicator */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <div className={`w-2 h-2 rounded-full ${getStatusColor(connectionStatus)}`}></div>
+          <span className="text-xs text-gray-300">{getStatusText(connectionStatus)}</span>
+        </div>
+        <div className="text-xs text-gray-400 ml-2">{sessionTime}</div>
       </div>
       
-      <div className="flex items-center space-x-2">
-        <div className="flex items-center space-x-1.5 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full">
-          <ClockIcon className="w-3.5 h-3.5 text-white" />
-          <span className="text-xs font-medium text-white">{sessionTime}</span>
-        </div>
-        
-        <button
-          onClick={onEndSession}
-          className="bg-black/40 backdrop-blur-md p-1.5 rounded-full hover:bg-red-500/70 transition-colors"
-          aria-label="End Session"
-        >
-          <XIcon className="w-4 h-4 text-white" />
-        </button>
+      {/* Center - Persona selector */}
+      <div className="absolute left-1/2 -translate-x-1/2">
+        <PersonaSelector compact />
       </div>
+      
+      {/* End session button */}
+      <button
+        onClick={onEndSession}
+        className="flex items-center justify-center w-7 h-7 rounded-full bg-red-500/20 hover:bg-red-500/30"
+        aria-label="End session"
+      >
+        <XIcon className="w-4 h-4 text-red-500" />
+      </button>
     </div>
   );
 }
