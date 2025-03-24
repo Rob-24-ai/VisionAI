@@ -175,25 +175,29 @@ function VisionBotContent() {
   
   return (
     <div className="flex flex-col h-screen bg-dark-900 text-white">
-      <StatusBar 
-        connectionStatus={connectionStatus} 
-        sessionTime={time} 
-        onEndSession={handleEndSession} 
-      />
-      
-      <div className="flex-1 flex flex-col p-4 relative">
-        <VideoFeed 
-          isProcessing={isProcessing}
-          modelName="CLAUDE 3.5 SONNET"
-        >
-          <CaptionDisplay text={captionText} />
-        </VideoFeed>
-      </div>
-      
-      <ControlsBar 
-        isMicActive={isMicActive} 
-        onMicToggle={handleMicToggle} 
-      />
+      {!showWelcome && (
+        <>
+          <StatusBar 
+            connectionStatus={connectionStatus} 
+            sessionTime={time} 
+            onEndSession={handleEndSession} 
+          />
+          
+          <div className="flex-1 flex items-center justify-center p-4 pb-20 relative">
+            <VideoFeed 
+              isProcessing={isProcessing}
+              modelName="CLAUDE 3.5 SONNET"
+            >
+              <CaptionDisplay text={captionText} />
+            </VideoFeed>
+          </div>
+          
+          <ControlsBar 
+            isMicActive={isMicActive} 
+            onMicToggle={handleMicToggle} 
+          />
+        </>
+      )}
       
       {showWelcome && (
         <WelcomeScreen onStartSession={handleStartSession} />
