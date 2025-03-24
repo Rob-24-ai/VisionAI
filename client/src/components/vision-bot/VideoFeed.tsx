@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useRTVIClient } from "@pipecat-ai/client-react";
 import { useCustomCamera } from "@/hooks/useCustomCamera";
 
@@ -12,17 +12,29 @@ export default function VideoFeed({ children, isProcessing = false, modelName = 
   const videoRef = useRef<HTMLVideoElement>(null);
   const client = useRTVIClient();
   const { initCamera } = useCustomCamera();
+  const [cameraInitFailed, setCameraInitFailed] = useState(false);
   
   useEffect(() => {
-    if (videoRef.current) {
-      initCamera(videoRef.current, { facingMode: "environment" });
+    let cameraStream: MediaStream | null = null;
+    
+    async function setupCamera() {
+      if (videoRef.current) {
+        try {
+          cameraStream = await initCamera(videoRef.current, { facingMode: "environment" });
+          setCameraInitFailed(false);
+        } catch (error) {
+          console.log("Camera init failed, using fallback mode");
+          setCameraInitFailed(true);
+        }
+      }
     }
+    
+    setupCamera();
     
     // Clean up camera when component unmounts
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
       }
     };
   }, [initCamera]);

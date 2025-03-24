@@ -13,8 +13,32 @@ import WelcomeScreen from "@/components/vision-bot/WelcomeScreen";
 import { useSessionTimer } from "@/hooks/useSessionTimer";
 import { ConnectionStatus } from "@/types/pipecat";
 
+// Define custom event types to match the Pipecat client API
+type PipecatEventTypes = 
+  | "connected"
+  | "disconnected" 
+  | "error" 
+  | "transcript" 
+  | "processingStateChange"
+  | string; // Allow string for other event types
+
+// Create additional type-safe methods on top of RTVIClient
+interface ExtendedRTVIClient {
+  hasDevicePermissions?: () => boolean;
+  requestDevicePermissions?: () => Promise<void>;
+  connect: () => void;
+  disconnect: () => void;
+  muteMicrophone?: () => void;
+  unmuteMicrophone?: () => void;
+  on(event: PipecatEventTypes, callback: (data: any) => void): void;
+  off(event: PipecatEventTypes, callback: (data: any) => void): void;
+}
+
 function VisionBotContent() {
-  const client = useRTVIClient();
+  const clientBase = useRTVIClient();
+  // Cast the client to our extended type
+  const client = clientBase as unknown as ExtendedRTVIClient;
+  
   const [, setLocation] = useLocation();
   const { time, isRunning, startTimer, stopTimer, resetTimer } = useSessionTimer();
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("disconnected");
@@ -63,15 +87,15 @@ function VisionBotContent() {
       setIsProcessing(event.processing);
     };
     
-    client.on("connect", onConnect);
-    client.on("disconnect", onDisconnect);
+    client.on("connected", onConnect);
+    client.on("disconnected", onDisconnect);
     client.on("error", onError);
     client.on("transcript", onTranscript);
     client.on("processingStateChange", onProcessingStateChange);
     
     return () => {
-      client.off("connect", onConnect);
-      client.off("disconnect", onDisconnect);
+      client.off("connected", onConnect);
+      client.off("disconnected", onDisconnect);
       client.off("error", onError);
       client.off("transcript", onTranscript);
       client.off("processingStateChange", onProcessingStateChange);
@@ -79,9 +103,11 @@ function VisionBotContent() {
   }, [client, startTimer, stopTimer]);
   
   const handleStartSession = useCallback(() => {
+    if (!client) return;
+    
     setShowWelcome(false);
     // Check if we need to request permissions first
-    if (!client.hasDevicePermissions()) {
+    if (client.hasDevicePermissions && !client.hasDevicePermissions()) {
       setShowPermissionsModal(true);
     } else {
       setShowConnectionModal(true);
@@ -90,8 +116,12 @@ function VisionBotContent() {
   }, [client]);
   
   const handleAllowPermissions = useCallback(async () => {
+    if (!client) return;
+    
     try {
-      await client.requestDevicePermissions();
+      if (client.requestDevicePermissions) {
+        await client.requestDevicePermissions();
+      }
       setShowPermissionsModal(false);
       setShowConnectionModal(true);
       client.connect();
@@ -106,27 +136,39 @@ function VisionBotContent() {
   }, []);
   
   const handleCancelConnection = useCallback(() => {
+    if (!client) return;
+    
     client.disconnect();
     setShowConnectionModal(false);
     setShowWelcome(true);
   }, [client]);
   
   const handleEndSession = useCallback(() => {
+    if (!client) return;
+    
     client.disconnect();
     resetTimer();
     setShowWelcome(true);
   }, [client, resetTimer]);
   
   const handleMicToggle = useCallback(() => {
+    if (!client) return;
+    
     if (isMicActive) {
-      client.muteMicrophone();
+      if (client.muteMicrophone) {
+        client.muteMicrophone();
+      }
     } else {
-      client.unmuteMicrophone();
+      if (client.unmuteMicrophone) {
+        client.unmuteMicrophone();
+      }
     }
     setIsMicActive(!isMicActive);
   }, [isMicActive, client]);
   
   const handleGoHome = useCallback(() => {
+    if (!client) return;
+    
     client.disconnect();
     setLocation("/");
   }, [client, setLocation]);
