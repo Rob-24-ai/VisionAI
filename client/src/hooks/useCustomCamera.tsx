@@ -1,137 +1,146 @@
-import { useCallback, useState } from "react";
+import { useState, useCallback } from 'react';
 
 interface CameraOptions {
-  facingMode?: "user" | "environment";
+  facingMode?: 'user' | 'environment';
   width?: number;
   height?: number;
 }
 
 export function useCustomCamera() {
-  const [cameraError, setCameraError] = useState<Error | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [hasCamera, setHasCamera] = useState<boolean>(true);
+  const [hasPermissions, setHasPermissions] = useState<boolean>(false);
+  const [error, setError] = useState<Error | null>(null);
   
-  const initCamera = useCallback(async (
-    videoElement: HTMLVideoElement,
-    options: CameraOptions = { facingMode: "environment" }
-  ) => {
-    setIsLoading(true);
-    setCameraError(null);
-    
-    try {
-      // Check if MediaDevices API is available (might not be in some environments)
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("Camera API not supported in this environment");
-      }
-      
-      // Default constraints for mobile-optimized camera with rear-facing priority
-      const constraints = {
-        audio: false,
-        video: {
-          // Use "environment" for rear camera, "user" for front camera
-          facingMode: { exact: options.facingMode || "environment" },
-          width: { ideal: options.width || 1280 },
-          height: { ideal: options.height || 720 },
-        }
-      };
-      
-      // Fallback if exact constraint fails
-      const fallbackConstraints = {
-        audio: false,
-        video: {
-          facingMode: options.facingMode || "environment",
-          width: { ideal: options.width || 1280 },
-          height: { ideal: options.height || 720 },
-        }
-      };
-      
-      // Attempt to access camera with exact constraints first
-      let stream;
+  // Start camera stream
+  const startCamera = useCallback(
+    async (videoElement: HTMLVideoElement, options: CameraOptions = { facingMode: 'environment' }) => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
-      } catch (exactError) {
-        console.log("Exact facingMode constraint failed, trying fallback:", exactError);
-        // Try with fallback constraints
-        stream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
-      }
-      
-      // Try to optimize the video track if possible
-      stream.getVideoTracks().forEach(track => {
-        if (track.getCapabilities && typeof track.getCapabilities === 'function') {
-          // Apply any optimizations if needed
-          track.applyConstraints({ 
-            advanced: [{ width: { ideal: 1280 }, height: { ideal: 720 } }] 
-          }).catch(e => console.log("Could not apply advanced constraints:", e));
-        }
-      });
-      
-      // Apply the stream to the video element
-      videoElement.srcObject = stream;
-      
-      // Ensure the video loads properly
-      await new Promise((resolve) => {
-        videoElement.onloadedmetadata = () => {
-          resolve(true);
+        // Clear any previous errors
+        setError(null);
+        
+        // Check if environment-facing camera is available (for mobile devices)
+        const constraints: MediaStreamConstraints = {
+          video: {
+            facingMode: options.facingMode,
+            width: options.width ? { ideal: options.width } : undefined,
+            height: options.height ? { ideal: options.height } : undefined,
+          },
+          audio: false,
         };
-      });
-      
-      setIsLoading(false);
-      return stream;
-    } catch (error) {
-      console.error("Error initializing camera:", error);
-      setCameraError(error instanceof Error ? error : new Error(String(error)));
-      setIsLoading(false);
-      
-      // Create a simple canvas-based "demo mode" fallback for environments without camera
-      createFallbackVideoStream(videoElement);
-      
-      throw error;
-    }
-  }, []);
+        
+        // Get user media stream
+        const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        // Set stream to video element
+        videoElement.srcObject = mediaStream;
+        setStream(mediaStream);
+        setHasPermissions(true);
+        
+        // Return the stream for any further processing
+        return mediaStream;
+      } catch (err: any) {
+        const errorMsg = err.message || 'Failed to start camera';
+        console.error('Camera error:', errorMsg);
+        setError(err);
+        
+        // Check if it's a permission error
+        if (errorMsg.includes('Permission denied') || 
+            errorMsg.includes('not allowed')) {
+          setHasPermissions(false);
+        }
+        
+        // Check if camera is not available
+        if (errorMsg.includes('device not found') || 
+            errorMsg.includes('Requested device not found')) {
+          setHasCamera(false);
+        }
+        
+        // Try fallback to front camera if environment camera not available
+        if (options.facingMode === 'environment' && 
+            (errorMsg.includes('device not found') || 
+             errorMsg.includes('Requested device not found'))) {
+          try {
+            return startCamera(videoElement, { ...options, facingMode: 'user' });
+          } catch (err) {
+            // If both cameras fail, continue with error
+            console.error('Fallback camera also failed:', err);
+          }
+        }
+        
+        return null;
+      }
+    },
+    []
+  );
   
-  // Create a fallback "fake" video stream using canvas for demo purposes
+  // Stop camera stream
+  const stopCamera = useCallback(() => {
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
+    }
+  }, [stream]);
+  
+  // Create a fallback video stream using placeholder or canvas
   const createFallbackVideoStream = useCallback((videoElement: HTMLVideoElement) => {
-    try {
-      // Create a canvas element
-      const canvas = document.createElement('canvas');
-      canvas.width = 640;
-      canvas.height = 480;
-      const ctx = canvas.getContext('2d');
-      
-      if (!ctx) return;
-      
-      // Draw a simple scene on the canvas
+    // Create a canvas element as fallback
+    const canvas = document.createElement('canvas');
+    canvas.width = videoElement.width || 640;
+    canvas.height = videoElement.height || 480;
+    
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      // Draw a simple placeholder
       ctx.fillStyle = '#111';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.font = '20px Arial';
-      ctx.fillStyle = 'white';
-      ctx.textAlign = 'center';
-      ctx.fillText('Camera access unavailable', canvas.width/2, canvas.height/2 - 30);
-      ctx.fillText('Demo Mode Active', canvas.width/2, canvas.height/2 + 10);
       
-      // Convert the canvas to a video source if possible
-      if (canvas.captureStream) {
-        const stream = canvas.captureStream();
-        videoElement.srcObject = stream;
-      }
-    } catch (e) {
-      console.error("Failed to create fallback video", e);
+      // Add text
+      ctx.fillStyle = '#aaa';
+      ctx.font = '20px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Camera unavailable', canvas.width / 2, canvas.height / 2 - 20);
+      ctx.fillText('Please check permissions', canvas.width / 2, canvas.height / 2 + 20);
     }
+    
+    // Use canvas as video source
+    const canvasStream = canvas.captureStream(30); // 30fps
+    videoElement.srcObject = canvasStream;
+    return canvasStream;
   }, []);
   
+  // Take a snapshot from the video element
   const takeSnapshot = useCallback((videoElement: HTMLVideoElement) => {
-    const canvas = document.createElement("canvas");
-    canvas.width = videoElement.videoWidth;
-    canvas.height = videoElement.videoHeight;
+    if (!videoElement || videoElement.readyState < 2) {
+      console.warn('Video not ready for snapshot');
+      return null;
+    }
     
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("Could not get canvas context");
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoElement.videoWidth;
+      canvas.height = videoElement.videoHeight;
+      
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        return canvas.toDataURL('image/jpeg');
+      }
+    } catch (err) {
+      console.error('Error taking snapshot:', err);
+    }
     
-    // Draw the current video frame to the canvas
-    ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-    
-    // Get the image data as a base64 encoded string
-    return canvas.toDataURL("image/jpeg", 0.9);
+    return null;
   }, []);
   
-  return { initCamera, takeSnapshot };
+  return {
+    stream,
+    hasCamera,
+    hasPermissions,
+    error,
+    startCamera,
+    stopCamera,
+    takeSnapshot,
+    createFallbackVideoStream,
+  };
 }

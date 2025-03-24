@@ -1,7 +1,6 @@
-// Connection status types
+// Define simpler types for our custom implementation
 export type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 
-// Pipecat event types (can be expanded as needed)
 export interface TranscriptEvent {
   transcript: {
     text: string;
@@ -23,11 +22,36 @@ export interface ErrorEvent {
   message: string;
 }
 
-// Client configuration types
 export interface PipecatClientConfig {
   apiKey?: string;
   baseUrl: string;
   endpoint: {
     connect: string;
   };
+}
+
+export type PipecatEventTypes = 
+  | "connected"
+  | "disconnected" 
+  | "error" 
+  | "transcript" 
+  | "processingStateChange"
+  | string; // Allow string for other event types
+
+// Define a simplified client interface for our app
+export interface ExtendedRTVIClient {
+  hasDevicePermissions?: () => boolean;
+  requestDevicePermissions?: () => Promise<void>;
+  connect: () => Promise<any>;
+  disconnect: () => void;
+  muteMicrophone?: () => void;
+  unmuteMicrophone?: () => void;
+  on(event: PipecatEventTypes, callback: (data: any) => void): void;
+  off(event: PipecatEventTypes, callback: (data: any) => void): void;
+  
+  // Extended properties for our app
+  status: ConnectionStatus;
+  isProcessing: boolean;
+  transcript: string;
+  toggleMicrophone: () => void;
 }

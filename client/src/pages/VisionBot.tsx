@@ -13,6 +13,7 @@ import PersonaSelector from '../components/vision-bot/PersonaSelector';
 // Hooks and Context
 import { usePipecatClient } from '../lib/pipecat-client';
 import { useSessionTimer } from '../hooks/useSessionTimer';
+import { useAudioLevels } from '../hooks/useAudioLevels';
 import { PersonaProvider } from '../contexts/PersonaContext';
 
 // Types
@@ -25,7 +26,6 @@ function VisionBotContent() {
   const [appState, setAppState] = useState<AppState>('welcome');
   const [showPermissionsModal, setShowPermissionsModal] = useState<boolean>(false);
   const [showConnectionModal, setShowConnectionModal] = useState<boolean>(false);
-  const [isMicActive, setIsMicActive] = useState<boolean>(false);
   
   // Pipecat client integration
   const { 
@@ -33,10 +33,17 @@ function VisionBotContent() {
     status, 
     isProcessing, 
     transcript, 
+    isMicActive,
     connect, 
     disconnect, 
     toggleMicrophone 
   } = usePipecatClient();
+  
+  // Audio levels for microphone visualization
+  const { audioLevel } = useAudioLevels({
+    enabled: isMicActive && appState === 'active',
+    smoothingFactor: 0.5
+  });
   
   // Session timer
   const { startTimer, pauseTimer, resetTimer, formattedTime, isRunning } = useSessionTimer();
@@ -73,9 +80,6 @@ function VisionBotContent() {
       setAppState('active');
       startTimer();
       
-      // Auto-activate microphone on successful connection
-      setIsMicActive(true);
-      
     } else if (status === 'error') {
       // Connection failed
       setShowConnectionModal(false);
@@ -85,9 +89,9 @@ function VisionBotContent() {
   
   // Handle microphone toggle
   const handleMicToggle = () => {
-    const newMicState = !isMicActive;
-    setIsMicActive(newMicState);
-    toggleMicrophone(newMicState);
+    if (toggleMicrophone) {
+      toggleMicrophone();
+    }
   };
   
   // End session and return to welcome screen
@@ -95,7 +99,6 @@ function VisionBotContent() {
     disconnect();
     resetTimer();
     setAppState('welcome');
-    setIsMicActive(false);
   };
   
   // Render based on app state
@@ -120,7 +123,8 @@ function VisionBotContent() {
           {/* Controls */}
           <ControlsBar 
             isMicActive={isMicActive} 
-            onMicToggle={handleMicToggle} 
+            onMicToggle={handleMicToggle}
+            audioLevel={audioLevel}
           />
           
           {/* Persona selector */}
