@@ -34,22 +34,22 @@ export default function StatusBar({ connectionStatus, sessionTime, onEndSession 
   };
 
   return (
-    <div className="w-full bg-dark-800 flex justify-between items-center px-4 py-2 h-12">
+    <div className="w-full bg-dark-800/90 backdrop-blur-sm flex justify-between items-center px-4 py-2 h-12 shadow-md z-10">
       <div className="text-xs font-medium flex items-center gap-2">
-        <span className="flex items-center gap-1">
+        <span className="flex items-center gap-1.5">
           <span className={`h-2 w-2 rounded-full ${getStatusColor()} ${connectionStatus === "connecting" ? "animate-pulse" : ""}`}></span>
           <span>{getStatusText()}</span>
         </span>
       </div>
       
-      <div className="flex items-center gap-2">
-        <span className="text-xs font-medium">{sessionTime}</span>
+      <div className="flex items-center gap-3">
+        <span className="text-xs font-semibold bg-dark-700/80 px-2 py-0.5 rounded-md">{sessionTime}</span>
         {connectionStatus === "connected" && (
           <button 
             onClick={onEndSession}
-            className="text-red-500 text-xs font-medium"
+            className="text-red-400 hover:text-red-300 text-xs font-medium bg-red-950/40 px-2 py-0.5 rounded-md transition-colors"
           >
-            End
+            End Session
           </button>
         )}
       </div>

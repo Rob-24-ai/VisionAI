@@ -14,14 +14,19 @@ export default function CaptionDisplay({ text }: CaptionDisplayProps) {
     }
   }, [text]);
 
+  // If no text is available, use a placeholder that indicates waiting
+  const displayText = text || "Waiting for response...";
+
   return (
-    <div className="absolute bottom-0 left-0 right-0 caption-container px-4 pb-4 pt-8 bg-gradient-to-t from-black/80 to-transparent">
-      <p 
-        ref={captionRef}
-        className="caption-text text-center text-white text-lg font-medium max-w-[90%] mx-auto shadow-text"
-      >
-        {text || "Waiting for response..."}
-      </p>
+    <div className="absolute bottom-0 left-0 right-0 caption-container px-4 pb-6 pt-12">
+      <div className="max-w-[95%] mx-auto bg-black/40 backdrop-blur-sm rounded-lg px-4 py-3">
+        <p 
+          ref={captionRef}
+          className="caption-text text-center text-white text-lg font-medium"
+        >
+          {displayText}
+        </p>
+      </div>
     </div>
   );
 }

@@ -183,7 +183,7 @@ function VisionBotContent() {
             onEndSession={handleEndSession} 
           />
           
-          <div className="flex-1 flex items-center justify-center p-4 pb-20 relative">
+          <div className="flex-1 flex items-center justify-center p-4 pb-24 relative">
             <VideoFeed 
               isProcessing={isProcessing}
               modelName="CLAUDE 3.5 SONNET"
