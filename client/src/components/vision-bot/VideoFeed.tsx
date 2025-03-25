@@ -23,6 +23,36 @@ export default function VideoFeed({ children, isProcessing = false, modelName = 
           if (mounted) setCameraReady(true);
         } catch (error) {
           console.error('Failed to setup camera:', error);
+          
+          // Create a fallback for Replit environment where camera might not be accessible
+          if (mounted) {
+            // Use fallback gradient background instead
+            if (videoRef.current) {
+              videoRef.current.style.display = 'none';
+              setCameraReady(true); // Still mark as ready so UI proceeds
+              
+              // Add a gradient background to parent element to simulate an image
+              const parent = videoRef.current.parentElement;
+              if (parent) {
+                parent.style.background = 'linear-gradient(45deg, #1a1a2e, #16213e, #0f3460)';
+                
+                // Create a text overlay to inform user
+                const infoElement = document.createElement('div');
+                infoElement.textContent = 'Camera simulation active';
+                infoElement.style.position = 'absolute';
+                infoElement.style.top = '10%';
+                infoElement.style.left = '50%';
+                infoElement.style.transform = 'translateX(-50%)';
+                infoElement.style.color = 'rgba(255,255,255,0.5)';
+                infoElement.style.fontSize = '14px';
+                infoElement.style.fontFamily = 'sans-serif';
+                infoElement.style.padding = '8px 16px';
+                infoElement.style.borderRadius = '4px';
+                infoElement.style.backgroundColor = 'rgba(0,0,0,0.3)';
+                parent.appendChild(infoElement);
+              }
+            }
+          }
         }
       }
     }
