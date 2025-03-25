@@ -10,47 +10,52 @@ interface VideoFeedProps {
 export default function VideoFeed({ children, isProcessing = false, modelName = "" }: VideoFeedProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraReady, setCameraReady] = useState(false);
-  const { startCamera, stopCamera } = useCustomCamera();
+  const [isFallbackActive, setIsFallbackActive] = useState(false);
+  const { startCamera, stopCamera, createFallbackVideoStream } = useCustomCamera();
   
   useEffect(() => {
     let mounted = true;
+    let retryCount = 0;
+    const maxRetries = 3;
     
     // Set up video feed when component mounts
     async function initCamera() {
       if (videoRef.current) {
         try {
-          await startCamera(videoRef.current, { facingMode: 'environment' });
-          if (mounted) setCameraReady(true);
-        } catch (error) {
-          console.error('Failed to setup camera:', error);
+          const stream = await startCamera(videoRef.current, { facingMode: 'environment' });
           
-          // Create a fallback for Replit environment where camera might not be accessible
           if (mounted) {
-            // Use fallback gradient background instead
-            if (videoRef.current) {
-              videoRef.current.style.display = 'none';
-              setCameraReady(true); // Still mark as ready so UI proceeds
-              
-              // Add a gradient background to parent element to simulate an image
-              const parent = videoRef.current.parentElement;
-              if (parent) {
-                parent.style.background = 'linear-gradient(45deg, #1a1a2e, #16213e, #0f3460)';
-                
-                // Create a text overlay to inform user
-                const infoElement = document.createElement('div');
-                infoElement.textContent = 'Camera simulation active';
-                infoElement.style.position = 'absolute';
-                infoElement.style.top = '10%';
-                infoElement.style.left = '50%';
-                infoElement.style.transform = 'translateX(-50%)';
-                infoElement.style.color = 'rgba(255,255,255,0.5)';
-                infoElement.style.fontSize = '14px';
-                infoElement.style.fontFamily = 'sans-serif';
-                infoElement.style.padding = '8px 16px';
-                infoElement.style.borderRadius = '4px';
-                infoElement.style.backgroundColor = 'rgba(0,0,0,0.3)';
-                parent.appendChild(infoElement);
-              }
+            if (stream) {
+              setCameraReady(true);
+              setIsFallbackActive(false);
+            } else {
+              throw new Error("Failed to get camera stream");
+            }
+          }
+        } catch (error) {
+          console.error('Camera error:', error);
+          
+          // If we haven't exceeded max retries, try again after a short delay
+          if (retryCount < maxRetries) {
+            retryCount++;
+            console.log(`Retrying camera initialization (${retryCount}/${maxRetries})...`);
+            setTimeout(initCamera, 1000);
+            return;
+          }
+          
+          // If all retries failed, use fallback
+          if (mounted && videoRef.current) {
+            console.log("Using fallback video stream...");
+            setIsFallbackActive(true);
+            
+            // Use our custom fallback stream generator
+            createFallbackVideoStream(videoRef.current);
+            setCameraReady(true); // Still mark as ready so UI proceeds
+            
+            // Apply gradient background to the container
+            const container = document.querySelector('.camera-container');
+            if (container instanceof HTMLElement) {
+              container.style.background = 'linear-gradient(45deg, #1a1a2e, #16213e, #0f3460)';
             }
           }
         }
@@ -64,12 +69,12 @@ export default function VideoFeed({ children, isProcessing = false, modelName = 
       mounted = false;
       stopCamera();
     };
-  }, [startCamera, stopCamera]);
+  }, [startCamera, stopCamera, createFallbackVideoStream]);
   
   return (
     <div className="relative w-full h-full flex items-center justify-center bg-dark-900 overflow-hidden">
       {/* Camera feed */}
-      <div className="relative w-full h-full">
+      <div className="camera-container relative w-full h-full">
         <video
           ref={videoRef}
           autoPlay
@@ -77,6 +82,13 @@ export default function VideoFeed({ children, isProcessing = false, modelName = 
           muted
           className={`w-full h-full object-cover ${cameraReady ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
         />
+        
+        {/* Fallback message */}
+        {isFallbackActive && cameraReady && (
+          <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-black/40 backdrop-blur-sm text-white text-sm px-4 py-2 rounded-full">
+            Camera simulation active
+          </div>
+        )}
         
         {/* Processing overlay */}
         {isProcessing && (
