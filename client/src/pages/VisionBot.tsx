@@ -1,23 +1,23 @@
 import { useState, useEffect } from 'react';
 
 // Components
-import VideoFeed from '../components/vision-bot/VideoFeed';
-import CaptionDisplay from '../components/vision-bot/CaptionDisplay';
-import ControlsBar from '../components/vision-bot/ControlsBar';
-import StatusBar from '../components/vision-bot/StatusBar';
-import WelcomeScreen from '../components/vision-bot/WelcomeScreen';
-import PermissionsModal from '../components/vision-bot/PermissionsModal';
-import ConnectionModal from '../components/vision-bot/ConnectionModal';
-import PersonaSelector from '../components/vision-bot/PersonaSelector';
+import VideoFeed from '@/components/vision-bot/VideoFeed';
+import CaptionDisplay from '@/components/vision-bot/CaptionDisplay';
+import ControlsBar from '@/components/vision-bot/ControlsBar';
+import StatusBar from '@/components/vision-bot/StatusBar';
+import WelcomeScreen from '@/components/vision-bot/WelcomeScreen';
+import PermissionsModal from '@/components/vision-bot/PermissionsModal';
+import ConnectionModal from '@/components/vision-bot/ConnectionModal';
+import PersonaSelector from '@/components/vision-bot/PersonaSelector';
 
 // Hooks and Context
-import { usePipecatClient } from '../lib/pipecat-client';
-import { useSessionTimer } from '../hooks/useSessionTimer';
-import { useAudioLevels } from '../hooks/useAudioLevels';
-import { PersonaProvider } from '../contexts/PersonaContext';
+import { usePipecatClient } from '@/lib/pipecat-client';
+import { useSessionTimer } from '@/hooks/useSessionTimer';
+import { useAudioLevels } from '@/hooks/useAudioLevels';
+import { PersonaProvider } from '@/contexts/PersonaContext';
 
 // Types
-import { ConnectionStatus } from '../types/pipecat';
+import { ConnectionStatus } from '@/types/pipecat';
 
 type AppState = 'welcome' | 'active' | 'ended';
 
