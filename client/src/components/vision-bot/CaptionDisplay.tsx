@@ -21,7 +21,7 @@ export default function CaptionDisplay({ text }: CaptionDisplayProps) {
         className="max-w-md w-full bg-gradient-to-t from-black/80 to-black/20 backdrop-blur-sm rounded-lg px-4 py-3 overflow-hidden"
       >
         {text ? (
-          <p className="text-white text-center text-lg font-medium">
+          <p className="text-white text-center text-lg font-medium line-clamp-2 max-h-[4rem]">
             {text}
           </p>
         ) : (

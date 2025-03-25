@@ -83,7 +83,7 @@ function VisionBotContent() {
       // Add initial greeting from the AI
       setTimeout(() => {
         // This simulates the AI greeting the user on successful connection
-        const initialMessage = "I can see your artwork. Clara Bennett here. The composition looks interesting, with good use of perspective.";
+        const initialMessage = "Clara Bennett here. I notice good use of perspective in this composition.";
         if (client && client.transcript !== initialMessage) {
           // Only override if there's no current transcript
           // In a real app, this would come from the AI backend
@@ -145,9 +145,12 @@ function VisionBotContent() {
             audioLevel={audioLevel}
           />
           
-          {/* Persona selector - positioned in top right corner */}
-          <div className="absolute top-16 right-4 z-20">
+          {/* Persona selector - positioned in top right corner for desktop, bottom for mobile */}
+          <div className="absolute top-16 right-4 z-20 md:block hidden">
             <PersonaSelector compact={false} />
+          </div>
+          <div className="absolute bottom-28 right-4 z-20 md:hidden block">
+            <PersonaSelector compact={true} />
           </div>
         </>
       )}

@@ -88,12 +88,12 @@ export function usePipecatClient() {
         responseTimeout = setTimeout(() => {
           setIsProcessing(false);
           
-          // Use the current persona to customize the response
+          // Use the current persona to customize the response - keep them short for 2 lines max
           const responses = [
-            `I can see your artwork. ${currentPersona.name} here. The composition looks interesting, with good use of ${Math.random() > 0.5 ? 'color' : 'perspective'}.`,
-            `From my perspective as ${currentPersona.title}, I notice strong elements of ${Math.random() > 0.5 ? 'balance' : 'contrast'} in this piece.`,
-            `This is an intriguing work. I particularly like the ${Math.random() > 0.5 ? 'texture' : 'focal point'} you've created.`,
-            `As ${currentPersona.name}, I'd suggest ${Math.random() > 0.5 ? 'exploring more depth in the shadows' : 'considering how light affects the overall mood'}.`
+            `${currentPersona.name} here. The composition shows good use of ${Math.random() > 0.5 ? 'color' : 'perspective'}.`,
+            `As ${currentPersona.title}, I notice elements of ${Math.random() > 0.5 ? 'balance' : 'contrast'} in this piece.`,
+            `I appreciate the ${Math.random() > 0.5 ? 'texture' : 'focal point'} you've created here.`,
+            `${currentPersona.name}: Try ${Math.random() > 0.5 ? 'more depth in the shadows' : 'different lighting for mood'}.`
           ];
           
           // Pick a random response
@@ -127,7 +127,7 @@ export function usePipecatClient() {
         setIsProcessing(true);
         setTimeout(() => {
           setIsProcessing(false);
-          setTranscript(`I've switched perspective to ${currentPersona.name}, ${currentPersona.title}. Let me analyze your artwork from this new angle.`);
+          setTranscript(`${currentPersona.name} here. Let me analyze your artwork as ${currentPersona.title}.`);
         }, 1500);
       }
     }
