@@ -14,36 +14,34 @@ export default function ControlsBar({ isMicActive, onMicToggle, audioLevel = 0 }
   };
   
   return (
-    <div className="absolute bottom-0 left-0 right-0 flex justify-center mb-4">
-      <button
-        onClick={onMicToggle}
-        className={`relative rounded-full p-2 flex items-center justify-center transition-colors duration-200 ${
-          isMicActive 
-            ? 'bg-indigo-600 hover:bg-indigo-700' 
-            : 'bg-gray-700 hover:bg-gray-600'
-        }`}
-        aria-label={isMicActive ? 'Mute microphone' : 'Unmute microphone'}
-      >
-        {/* Outer fixed circle */}
-        <div className="w-9 h-9 rounded-full flex items-center justify-center">
-          {isMicActive ? (
-            <Mic className="w-5 h-5 text-white" />
-          ) : (
-            <MicOff className="w-5 h-5 text-white" />
-          )}
-          
-          {/* Inner animated circle for audio visualization */}
-          {isMicActive && (
-            <div 
-              className="absolute inset-0 rounded-full bg-indigo-400 opacity-50 transition-transform duration-75"
-              style={{ 
-                transform: `scale(${getInnerScale()})`,
-                transformOrigin: 'center'
-              }}
-            />
-          )}
-        </div>
-      </button>
-    </div>
+    <button
+      onClick={onMicToggle}
+      className={`relative rounded-full p-1 flex items-center justify-center transition-colors duration-200 shadow-lg ${
+        isMicActive 
+          ? 'bg-indigo-600 hover:bg-indigo-700' 
+          : 'bg-gray-700 hover:bg-gray-600'
+      }`}
+      aria-label={isMicActive ? 'Mute microphone' : 'Unmute microphone'}
+    >
+      {/* Outer fixed circle */}
+      <div className="w-8 h-8 rounded-full flex items-center justify-center">
+        {isMicActive ? (
+          <Mic className="w-4 h-4 text-white" />
+        ) : (
+          <MicOff className="w-4 h-4 text-white" />
+        )}
+        
+        {/* Inner animated circle for audio visualization */}
+        {isMicActive && (
+          <div 
+            className="absolute inset-0 rounded-full bg-indigo-400 opacity-50 transition-transform duration-75"
+            style={{ 
+              transform: `scale(${getInnerScale()})`,
+              transformOrigin: 'center'
+            }}
+          />
+        )}
+      </div>
+    </button>
   );
 }

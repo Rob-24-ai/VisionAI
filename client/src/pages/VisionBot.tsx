@@ -125,34 +125,42 @@ function VisionBotContent() {
       {appState === 'welcome' ? (
         <WelcomeScreen onStartSession={handleStartSession} />
       ) : (
-        <>
-          {/* Main video feed with captions */}
-          <VideoFeed isProcessing={isProcessing} modelName="">
-            <CaptionDisplay text={transcript} />
-          </VideoFeed>
-          
-          {/* Status bar */}
-          <StatusBar 
-            connectionStatus={status as ConnectionStatus} 
-            sessionTime={formattedTime} 
-            onEndSession={handleEndSession} 
-          />
-          
-          {/* Controls */}
-          <ControlsBar 
-            isMicActive={isMicActive} 
-            onMicToggle={handleMicToggle}
-            audioLevel={audioLevel}
-          />
-          
-          {/* Persona selector - positioned in top right corner for desktop, bottom for mobile */}
-          <div className="absolute top-16 right-4 z-20 md:block hidden">
-            <PersonaSelector compact={false} />
+        <div className="flex flex-col h-full">
+          {/* Top bar area - fixed height */}
+          <div className="w-full h-14 flex items-center justify-between px-4 z-10 bg-gradient-to-b from-black/80 to-transparent">
+            <StatusBar 
+              connectionStatus={status as ConnectionStatus} 
+              sessionTime={formattedTime} 
+              onEndSession={handleEndSession} 
+            />
           </div>
-          <div className="absolute bottom-28 right-4 z-20 md:hidden block">
-            <PersonaSelector compact={true} />
+          
+          {/* Persona selector - Always at top-right */}
+          <div className="absolute top-2 right-2 z-20">
+            <PersonaSelector />
           </div>
-        </>
+          
+          {/* Main content area with camera feed */}
+          <div className="flex-grow relative overflow-hidden">
+            <VideoFeed isProcessing={isProcessing} modelName="" />
+          </div>
+          
+          {/* Caption area - fixed height */}
+          <div className="w-full z-10 h-20 flex items-center justify-center">
+            <div className="w-full max-w-xl px-4">
+              <CaptionDisplay text={transcript} />
+            </div>
+          </div>
+          
+          {/* Bottom controls area - fixed height */}
+          <div className="w-full h-16 flex items-center justify-center pb-4 z-10">
+            <ControlsBar 
+              isMicActive={isMicActive} 
+              onMicToggle={handleMicToggle}
+              audioLevel={audioLevel}
+            />
+          </div>
+        </div>
       )}
       
       {/* Modals */}

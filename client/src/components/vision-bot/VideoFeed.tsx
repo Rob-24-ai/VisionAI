@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import { useCustomCamera } from '../../hooks/useCustomCamera';
 
 interface VideoFeedProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   isProcessing?: boolean;
   modelName?: string;
 }
@@ -72,7 +72,7 @@ export default function VideoFeed({ children, isProcessing = false, modelName = 
   }, [startCamera, stopCamera, createFallbackVideoStream]);
   
   return (
-    <div className="relative w-full h-full flex items-center justify-center bg-dark-900 overflow-hidden">
+    <div className="w-full h-full bg-black">
       {/* Camera feed */}
       <div className="camera-container relative w-full h-full">
         <video
@@ -85,39 +85,33 @@ export default function VideoFeed({ children, isProcessing = false, modelName = 
         
         {/* Fallback message */}
         {isFallbackActive && cameraReady && (
-          <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-black/40 backdrop-blur-sm text-white text-sm px-4 py-2 rounded-full">
+          <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-black/40 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">
             Camera simulation active
           </div>
         )}
         
-        {/* Processing overlay */}
+        {/* Processing indicator (smaller and less obtrusive) */}
         {isProcessing && (
-          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm px-2 py-1 rounded text-white flex items-center space-x-2">
+            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-xs">Processing</span>
           </div>
         )}
         
         {/* Model indicator (if provided) */}
         {modelName && (
-          <div className="absolute top-4 right-4 bg-dark-800/80 backdrop-blur-sm text-xs px-2 py-1 rounded-full text-white">
+          <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-xs px-2 py-1 rounded text-white">
             {modelName}
           </div>
         )}
         
         {/* Loading state */}
         {!cameraReady && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-dark-900">
-            <div className="w-12 h-12 border-2 border-gray-300 border-t-primary rounded-full animate-spin mb-4"></div>
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black">
+            <div className="w-8 h-8 border-2 border-gray-500 border-t-indigo-500 rounded-full animate-spin mb-3"></div>
             <p className="text-sm text-gray-400">Initializing camera...</p>
           </div>
         )}
-        
-        {/* Border effect when processing */}
-        <div 
-          className={`absolute inset-0 pointer-events-none border-2 transition-colors duration-300 ${
-            isProcessing ? 'border-primary' : 'border-transparent'
-          }`}
-        ></div>
         
         {/* Pass through any children (like captions) */}
         {children}
