@@ -56,7 +56,12 @@ export function usePipecatClient() {
       status: 'disconnected',
       isProcessing: false,
       transcript: '',
-      toggleMicrophone: () => setIsMicActive(prev => !prev)
+      toggleMicrophone: () => setIsMicActive(prev => !prev),
+      
+      // Internal method used for simulating AI responses
+      _setTranscript: (text: string) => {
+        setTranscript(text);
+      }
     };
     
     setClient(simulatedClient);

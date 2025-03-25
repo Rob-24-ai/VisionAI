@@ -80,12 +80,30 @@ function VisionBotContent() {
       setAppState('active');
       startTimer();
       
+      // Add initial greeting from the AI
+      setTimeout(() => {
+        // This simulates the AI greeting the user on successful connection
+        const initialMessage = "I can see your artwork. Clara Bennett here. The composition looks interesting, with good use of perspective.";
+        if (client && client.transcript !== initialMessage) {
+          // Only override if there's no current transcript
+          // In a real app, this would come from the AI backend
+          client._setTranscript?.(initialMessage);
+        }
+        
+        // Automatically activate mic after a short delay
+        setTimeout(() => {
+          if (!isMicActive && toggleMicrophone) {
+            toggleMicrophone();
+          }
+        }, 1000);
+      }, 1500);
+      
     } else if (status === 'error') {
       // Connection failed
       setShowConnectionModal(false);
       // Could show an error modal here
     }
-  }, [status, startTimer]);
+  }, [status, startTimer, client, isMicActive, toggleMicrophone]);
   
   // Handle microphone toggle
   const handleMicToggle = () => {
@@ -127,8 +145,10 @@ function VisionBotContent() {
             audioLevel={audioLevel}
           />
           
-          {/* Persona selector */}
-          <PersonaSelector compact={true} />
+          {/* Persona selector - positioned in top right corner */}
+          <div className="absolute top-16 right-4 z-20">
+            <PersonaSelector compact={false} />
+          </div>
         </>
       )}
       

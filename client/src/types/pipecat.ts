@@ -54,4 +54,7 @@ export interface ExtendedRTVIClient {
   isProcessing: boolean;
   transcript: string;
   toggleMicrophone: () => void;
+  
+  // Internal method for simulations - not part of the real Pipecat API
+  _setTranscript?: (text: string) => void;
 }
