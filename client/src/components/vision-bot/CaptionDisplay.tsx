@@ -15,17 +15,17 @@ export default function CaptionDisplay({ text }: CaptionDisplayProps) {
   }, [text]);
   
   return (
-    <div className="absolute bottom-0 left-0 right-0 flex justify-center mb-36 px-4 pointer-events-none">
+    <div className="absolute bottom-0 left-0 right-0 flex justify-center mb-20 px-4 pointer-events-none">
       <div 
         ref={captionRef}
-        className="max-w-md w-full bg-gradient-to-t from-black/80 to-black/20 backdrop-blur-sm rounded-lg px-4 py-3 overflow-hidden"
+        className="max-w-md w-full bg-gradient-to-t from-black/80 to-black/20 backdrop-blur-sm rounded-lg px-4 py-2 overflow-hidden"
       >
         {text ? (
-          <p className="text-white text-center text-lg font-medium line-clamp-2 max-h-[4rem]">
+          <p className="text-white text-center text-base font-medium line-clamp-2 max-h-[3.5rem]">
             {text}
           </p>
         ) : (
-          <p className="text-gray-400 text-center text-lg italic">
+          <p className="text-gray-400 text-center text-base italic">
             Waiting for response...
           </p>
         )}

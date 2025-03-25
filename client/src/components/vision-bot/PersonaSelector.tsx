@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePersona } from '../../contexts/PersonaContext';
 import { artCriticPersonas, Persona, ArtExpertiseArea } from '../../lib/personas';
-import { ChevronDown, User } from 'lucide-react';
+import { ChevronUp, User } from 'lucide-react';
 
 interface PersonaSelectorProps {
   compact?: boolean; // For smaller UI in mobile view
@@ -10,6 +10,7 @@ interface PersonaSelectorProps {
 export default function PersonaSelector({ compact = false }: PersonaSelectorProps) {
   const { currentPersona, setCurrentPersona } = usePersona();
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   // Handle persona selection
   const handleSelectPersona = (persona: Persona) => {
@@ -22,33 +23,34 @@ export default function PersonaSelector({ compact = false }: PersonaSelectorProp
     return isExpanded ? 'Close art critic selector' : 'Open art critic selector';
   };
   
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsExpanded(false);
+      }
+    };
+    
+    if (isExpanded) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isExpanded]);
+  
   return (
-    <div className={`fixed ${compact ? 'bottom-24 right-4' : 'top-14 right-4'} z-10`}>
-      {/* Current persona button */}
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center gap-2 bg-black/40 backdrop-blur-sm rounded-full pl-2 pr-3 py-1 text-white shadow-lg hover:bg-black/50 transition-colors duration-150"
-        aria-label={getButtonAriaLabel()}
-        aria-expanded={isExpanded}
-      >
-        <div 
-          className="w-6 h-6 rounded-full flex items-center justify-center" 
-          style={{ backgroundColor: currentPersona.avatarColor }}
-        >
-          <User className="h-3 w-3 text-white" />
-        </div>
-        <span className="text-xs font-medium">{currentPersona.name}</span>
-        <ChevronDown 
-          className={`w-3 h-3 transition-transform duration-150 ${isExpanded ? 'rotate-180' : ''}`} 
-        />
-      </button>
-      
-      {/* Dropdown selector */}
+    <div 
+      ref={containerRef}
+      className={`fixed z-10 ${compact ? 'top-20' : 'top-4'} right-4`}
+    >
+      {/* Dropdown selector - positioned ABOVE the button */}
       {isExpanded && (
-        <div className="absolute right-0 mt-2 w-64 p-3 bg-black/60 backdrop-blur-md rounded-lg shadow-lg text-white">
+        <div className="absolute right-0 bottom-full mb-2 w-64 p-3 bg-black/80 backdrop-blur-md rounded-lg shadow-lg text-white">
           <h3 className="text-xs font-medium mb-2 text-gray-300">Select Art Critic</h3>
           
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-[40vh] overflow-y-auto">
             {artCriticPersonas.map((persona) => (
               <button
                 key={persona.id}
@@ -58,10 +60,10 @@ export default function PersonaSelector({ compact = false }: PersonaSelectorProp
                 }`}
               >
                 <div 
-                  className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center mr-2" 
+                  className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mr-2" 
                   style={{ backgroundColor: persona.avatarColor }}
                 >
-                  <User className="h-4 w-4 text-white" />
+                  <User className="h-3.5 w-3.5 text-white" />
                 </div>
                 
                 <div className="flex-1 min-w-0">
@@ -78,6 +80,25 @@ export default function PersonaSelector({ compact = false }: PersonaSelectorProp
           </div>
         </div>
       )}
+      
+      {/* Current persona button */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-full pl-2 pr-3 py-1 text-white shadow-lg hover:bg-black/80 transition-colors duration-150"
+        aria-label={getButtonAriaLabel()}
+        aria-expanded={isExpanded}
+      >
+        <div 
+          className="w-5 h-5 rounded-full flex items-center justify-center" 
+          style={{ backgroundColor: currentPersona.avatarColor }}
+        >
+          <User className="h-2.5 w-2.5 text-white" />
+        </div>
+        <span className="text-xs font-medium">{currentPersona.name}</span>
+        <ChevronUp
+          className={`w-3 h-3 transition-transform duration-150 ${isExpanded ? '' : 'rotate-180'}`} 
+        />
+      </button>
     </div>
   );
 }
