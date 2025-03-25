@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import { useCustomCamera } from '@/hooks/useCustomCamera';
 
 interface VideoFeedProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   isProcessing?: boolean;
   modelName?: string;
 }
@@ -12,7 +12,7 @@ interface VideoFeedProps {
 export default function VideoFeed({ children, isProcessing = false, modelName = "" }: VideoFeedProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraReady, setCameraReady] = useState(false);
-  const { startCamera, stopCamera } = useCustomCamera();
+  const { setupCamera, stopCamera, error } = useCustomCamera();
   
   useEffect(() => {
     let mounted = true;
@@ -21,8 +21,18 @@ export default function VideoFeed({ children, isProcessing = false, modelName = 
     async function initCamera() {
       if (videoRef.current) {
         try {
-          await startCamera(videoRef.current, { facingMode: 'environment' });
-          if (mounted) setCameraReady(true);
+          console.log('Initializing camera in VideoFeed component');
+          await setupCamera(videoRef.current, { 
+            facingMode: 'environment',
+            width: 1280,
+            height: 720
+          });
+          
+          // Wait a short time to ensure video is playing before showing
+          setTimeout(() => {
+            if (mounted) setCameraReady(true);
+          }, 300);
+          
         } catch (error) {
           console.error('Failed to setup camera:', error);
         }
@@ -36,12 +46,12 @@ export default function VideoFeed({ children, isProcessing = false, modelName = 
       mounted = false;
       stopCamera();
     };
-  }, [startCamera, stopCamera]);
+  }, [setupCamera, stopCamera]);
   
   return (
     <div className="relative w-full h-full flex items-center justify-center bg-dark-900 overflow-hidden">
-      {/* Camera feed */}
-      <div className="relative w-full h-full">
+      {/* Camera feed - modified to use square aspect ratio */}
+      <div className="relative aspect-square w-full max-w-lg mx-auto">
         <video
           ref={videoRef}
           autoPlay

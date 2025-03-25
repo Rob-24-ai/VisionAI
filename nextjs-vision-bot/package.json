@@ -9,9 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@pipecat-ai/client-js": "^0.1.0",
-    "@pipecat-ai/client-react": "^0.1.0",
-    "@pipecat-ai/daily-transport": "^0.1.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "lucide-react": "^0.293.0",

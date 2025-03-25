@@ -17,7 +17,7 @@ export default function CaptionDisplay({ text }: CaptionDisplayProps) {
   }, [text]);
   
   return (
-    <div className="absolute bottom-0 left-0 right-0 flex justify-center mb-24 px-4 pointer-events-none">
+    <div className="absolute bottom-0 left-0 right-0 flex justify-center mb-4 px-4 pointer-events-none">
       <div 
         ref={captionRef}
         className="max-w-md w-full bg-gradient-to-t from-black/80 to-black/20 backdrop-blur-sm rounded-lg px-4 py-3 overflow-hidden"

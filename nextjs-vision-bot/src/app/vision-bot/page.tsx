@@ -56,8 +56,20 @@ export default function VisionBot() {
     
     if (videoRef.current) {
       try {
-        await setupCamera(videoRef.current, { facingMode: 'environment' });
+        console.log('Setting up camera from permissions handler');
+        await setupCamera(videoRef.current, { 
+          facingMode: 'environment',
+          width: 1280,
+          height: 720
+        });
         setShowConnectionModal(true);
+        
+        // For testing: Auto-dismiss the connection modal after 3 seconds
+        // In production, this would be replaced with actual API connection logic
+        setTimeout(() => {
+          setShowConnectionModal(false);
+          setConnectionStatus('connected');
+        }, 3000);
       } catch (error) {
         console.error('Failed to setup camera:', error);
         alert('Failed to access camera. Please check your device permissions.');
@@ -124,16 +136,18 @@ export default function VisionBot() {
           onEndSession={handleEndSession}
         />
         
-        <VideoFeed isProcessing={isProcessing} modelName="Claude Vision">
-          <video 
-            ref={videoRef}
-            autoPlay 
-            playsInline 
-            muted 
-            className="h-full w-full object-cover"
-          />
-          <CaptionDisplay text={caption} />
-        </VideoFeed>
+        <div className="flex-1 flex items-center justify-center p-4">
+          <VideoFeed isProcessing={isProcessing} modelName="Claude Vision">
+            <video 
+              ref={videoRef}
+              autoPlay 
+              playsInline 
+              muted 
+              className="h-full w-full object-cover"
+            />
+            <CaptionDisplay text={caption} />
+          </VideoFeed>
+        </div>
         
         <ControlsBar 
           isMicActive={isMicActive}

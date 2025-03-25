@@ -45,7 +45,7 @@ export default function ControlsBar({ isMicActive, onMicToggle }: ControlsBarPro
         {/* Microphone button with audio level visualization */}
         <button
           onClick={onMicToggle}
-          className="relative w-16 h-16 flex items-center justify-center bg-primary rounded-full shadow-lg pointer-events-auto hover:bg-primary/90 active:scale-95 transition-all duration-200"
+          className="relative w-12 h-12 flex items-center justify-center bg-primary rounded-full shadow-lg pointer-events-auto hover:bg-primary/90 active:scale-95 transition-all duration-200"
           aria-label={isMicActive ? "Mute microphone" : "Unmute microphone"}
         >
           {/* Outer ring (button background) */}
