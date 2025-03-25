@@ -31,26 +31,26 @@ export default function StatusBar({ connectionStatus, sessionTime, onEndSession 
   };
   
   return (
-    <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 bg-black/50 backdrop-blur-sm text-white z-10">
+    <div className="w-full flex items-center justify-between text-white">
       {/* Connection status */}
-      <div className="flex items-center gap-2">
-        <WifiIcon className={`w-4 h-4 ${getStatusColor(connectionStatus)}`} />
-        <span className="text-xs font-medium">{getStatusText(connectionStatus)}</span>
+      <div className="flex items-center gap-1">
+        <WifiIcon className={`w-3 h-3 ${getStatusColor(connectionStatus)}`} />
+        <span className="text-[10px]">{getStatusText(connectionStatus)}</span>
       </div>
       
       {/* Session timer */}
-      <div className="flex items-center gap-2">
-        <Clock className="w-4 h-4 text-gray-300" />
-        <span className="text-xs font-medium">{sessionTime}</span>
+      <div className="flex items-center gap-1">
+        <Clock className="w-3 h-3 text-gray-300" />
+        <span className="text-[10px]">{sessionTime}</span>
       </div>
       
       {/* End session button */}
       <button
         onClick={onEndSession}
-        className="flex items-center gap-1 text-xs font-medium text-gray-300 hover:text-white transition-colors"
+        className="flex items-center gap-1 text-[10px] text-gray-300 hover:text-white transition-colors"
         aria-label="End session"
       >
-        <XCircle className="w-4 h-4" />
+        <XCircle className="w-3 h-3" />
         <span>End</span>
       </button>
     </div>

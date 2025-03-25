@@ -142,7 +142,9 @@ function VisionBotContent() {
           
           {/* Main content area with camera feed */}
           <div className="flex-grow relative overflow-hidden">
-            <VideoFeed isProcessing={isProcessing} modelName="" />
+            <VideoFeed isProcessing={isProcessing} modelName="">
+              {/* No children needed here as captions are rendered separately */}
+            </VideoFeed>
           </div>
           
           {/* Caption area - fixed height */}
